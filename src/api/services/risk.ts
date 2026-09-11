@@ -14,8 +14,14 @@ export const riskService = {
   getRiskScore: async (params: RiskScoreParams = { routeId: 'hwh-kgp' }): Promise<ApiResult<RiskScoreResponse>> => {
     const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
     if (!isDemoMode) {
-      const segmentId = String(params.routeId || 'SEG_01');
-      const res = await riskApiClient.get<P2RiskScoreResponse>('/api/v1/risk-score', { segment_id: segmentId });
+      let segmentId = (params.routeId && params.routeId !== 'hwh-kgp') ? String(params.routeId) : 'SEG_01';
+      let res = await riskApiClient.get<P2RiskScoreResponse>('/api/v1/risk-score', { segment_id: segmentId });
+
+      if (!res.success && segmentId !== 'SEG_01') {
+        segmentId = 'SEG_01';
+        res = await riskApiClient.get<P2RiskScoreResponse>('/api/v1/risk-score', { segment_id: segmentId });
+      }
+
       if (res.success) {
         const p2Level = res.data.risk_level;
         let overallLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW';

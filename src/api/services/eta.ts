@@ -50,17 +50,18 @@ export const etaService = {
         const d = res.data;
         const now = new Date();
         const arrivalTime = new Date(now.getTime() + d.predicted_delay_min * 60000);
-        const arrivalStr = arrivalTime.toTimeString().slice(0, 5);
+        const earliestTime = new Date(now.getTime() + d.confidence_low_min * 60000);
+        const latestTime = new Date(now.getTime() + d.confidence_high_min * 60000);
 
         return {
           success: true,
           data: {
             trainId: String(params.trainId || '12841'),
-            predictedArrival: arrivalStr,
+            predictedArrival: arrivalTime.toISOString(),
             delayMinutes: Math.round(d.predicted_delay_min * 10) / 10,
             confidenceRange: {
-              earliest: `${Math.round(d.confidence_low_min)}m`,
-              latest: `${Math.round(d.confidence_high_min)}m`,
+              earliest: earliestTime.toISOString(),
+              latest: latestTime.toISOString(),
             },
             confidenceLowMin: d.confidence_low_min,
             confidenceHighMin: d.confidence_high_min,
@@ -75,15 +76,16 @@ export const etaService = {
     }
 
     const demoData = getETAOverride() || { predictedArrival: '11:25', delay: 0, confidence: ['11:20', '11:35'] };
+    const today = new Date().toISOString().split('T')[0];
     return {
       success: true,
       data: {
         trainId: String(params.trainId || '12841'),
-        predictedArrival: demoData.predictedArrival,
+        predictedArrival: `${today}T${demoData.predictedArrival}:00.000Z`,
         delayMinutes: demoData.delay,
         confidenceRange: {
-          earliest: demoData.confidence[0],
-          latest: demoData.confidence[1],
+          earliest: `${today}T${demoData.confidence[0]}:00.000Z`,
+          latest: `${today}T${demoData.confidence[1]}:00.000Z`,
         },
         upcomingJunctions: [],
         timestamp: new Date().toISOString(),
