@@ -34,6 +34,10 @@ export interface ETAPrediction {
     readonly earliest: string;
     readonly latest: string;
   };
+  readonly confidenceLowMin?: number;
+  readonly confidenceHighMin?: number;
+  readonly confidencePct?: number;
+  readonly baselineMaeMin?: number;
   readonly nextJunction?: JunctionInfo;
   readonly upcomingJunctions: readonly JunctionInfo[];
   readonly timestamp: string;

@@ -1,16 +1,15 @@
 import type { ApiResult, ApiError } from '../types/domain';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-
-class ApiClient {
+export class ApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = API_BASE_URL) {
-    this.baseUrl = baseUrl;
+  constructor(baseUrl: string = '') {
+    this.baseUrl = baseUrl.replace(/\/$/, '');
   }
 
   private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResult<T>> {
-    const url = `${this.baseUrl}${endpoint}`;
+    const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${this.baseUrl}${formattedEndpoint}`;
 
     try {
       const response = await fetch(url, {
@@ -45,23 +44,58 @@ class ApiClient {
   }
 
   async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<ApiResult<T>> {
-    const url = new URL(endpoint, this.baseUrl);
-    if (params) {
+    let urlString = `${this.baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    if (params && Object.keys(params).length > 0) {
+      const searchParams = new URLSearchParams();
       (Object.entries(params) as [string, unknown][]).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          url.searchParams.set(key, String(value));
+          searchParams.set(key, String(value));
         }
       });
+      urlString += `?${searchParams.toString()}`;
     }
-    return this.request<T>(url.pathname + url.search);
+
+    try {
+      const response = await fetch(urlString, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const error: ApiError = {
+          code: `HTTP_${response.status}`,
+          message: response.statusText || 'Request failed',
+          status: response.status,
+          timestamp: new Date().toISOString(),
+        };
+        return { success: false, error };
+      }
+
+      const data = await response.json();
+      return { success: true, data };
+    } catch (err) {
+      const error: ApiError = {
+        code: 'NETWORK_ERROR',
+        message: err instanceof Error ? err.message : 'Unknown network error',
+        status: 0,
+        timestamp: new Date().toISOString(),
+      };
+      return { success: false, error };
+    }
   }
 
-  async post<T>(endpoint: string, body: unknown): Promise<ApiResult<T>> {
+  async post<T>(endpoint: string, body?: unknown): Promise<ApiResult<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   }
 }
 
-export const apiClient = new ApiClient();
+export const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL || '');
+export const etaApiClient = new ApiClient(import.meta.env.VITE_ETA_API_URL || 'http://localhost:8001');
+export const positionApiClient = new ApiClient(import.meta.env.VITE_POSITION_API_URL || 'http://localhost:8002');
+export const riskApiClient = new ApiClient(import.meta.env.VITE_RISK_API_URL || 'http://localhost:8002');
+export const confirmationApiClient = new ApiClient(import.meta.env.VITE_CONFIRMATION_API_URL || 'http://localhost:8003');
+export const incidentApiClient = new ApiClient(import.meta.env.VITE_INCIDENT_API_URL || 'http://localhost:8003');
