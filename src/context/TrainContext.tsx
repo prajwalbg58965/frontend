@@ -16,17 +16,27 @@ export const POPULAR_TRAINS: TrainInfo[] = [
     id: '12841',
     name: 'Coromandel Express',
     route: 'Howrah (HWH) ➔ Chennai Central (MAS)',
-    origin: 'Howrah Junction (HWH)',
+    origin: 'Howrah (HWH)',
     destination: 'Chennai Central (MAS)',
     status: 'ACTIVE • Live ML Monitored',
     speed: '110 km/h',
     zone: 'SER'
   },
   {
+    id: '16527',
+    name: 'Yesvantpur - Kannur Express',
+    route: 'Yesvantpur (YPR) ➔ Kannur (CAN)',
+    origin: 'Yesvantpur (YPR)',
+    destination: 'Kannur (CAN)',
+    status: 'ACTIVE • Live Monitored',
+    speed: '85 km/h',
+    zone: 'SWR'
+  },
+  {
     id: '12839',
     name: 'Howrah - Chennai Mail',
     route: 'Howrah (HWH) ➔ Chennai Central (MAS)',
-    origin: 'Howrah Junction (HWH)',
+    origin: 'Howrah (HWH)',
     destination: 'Chennai Central (MAS)',
     status: 'ACTIVE • Scheduled',
     speed: '105 km/h',
@@ -36,7 +46,7 @@ export const POPULAR_TRAINS: TrainInfo[] = [
     id: '12863',
     name: 'Howrah - SMVT Bengaluru SF Exp',
     route: 'Howrah (HWH) ➔ SMVT Bengaluru (SMVT)',
-    origin: 'Howrah Junction (HWH)',
+    origin: 'Howrah (HWH)',
     destination: 'SMVT Bengaluru (SMVT)',
     status: 'ACTIVE • Scheduled',
     speed: '95 km/h',
@@ -56,7 +66,7 @@ export const POPULAR_TRAINS: TrainInfo[] = [
     id: '12301',
     name: 'Howrah Rajdhani Express',
     route: 'Howrah (HWH) ➔ New Delhi (NDLS)',
-    origin: 'Howrah Junction (HWH)',
+    origin: 'Howrah (HWH)',
     destination: 'New Delhi (NDLS)',
     status: 'ACTIVE • High Priority',
     speed: '130 km/h',
@@ -66,7 +76,7 @@ export const POPULAR_TRAINS: TrainInfo[] = [
     id: '12245',
     name: 'Howrah - SMVT Duronto Express',
     route: 'Howrah (HWH) ➔ SMVT Bengaluru (SMVT)',
-    origin: 'Howrah Junction (HWH)',
+    origin: 'Howrah (HWH)',
     destination: 'SMVT Bengaluru (SMVT)',
     status: 'ACTIVE • Non-Stop SF',
     speed: '120 km/h',
@@ -103,11 +113,11 @@ export function TrainProvider({ children }: { children: ReactNode }) {
     return {
       id,
       name: `Express Train #${id}`,
-      route: `Live Corridor Query #${id}`,
-      origin: 'Howrah Junction (HWH)',
-      destination: 'Chennai Central (MAS)',
+      route: `Custom Route Query #${id}`,
+      origin: 'Origin Station',
+      destination: 'Destination Station',
       status: 'CUSTOM TRAIN • ML Query Active',
-      speed: '105 km/h',
+      speed: '100 km/h',
       zone: 'IR Network'
     };
   };
@@ -115,20 +125,21 @@ export function TrainProvider({ children }: { children: ReactNode }) {
   const setSelectedTrainId = (id: string) => {
     const cleanId = id.trim();
     if (!cleanId) return;
-    
-    // If it's a new custom train ID not in list, add it dynamically
+
+    // Check if known train or new custom train
+    const existing = POPULAR_TRAINS.find((t) => t.id === cleanId);
     if (!trainList.some((t) => t.id === cleanId)) {
-      const customTrain: TrainInfo = {
+      const newTrain: TrainInfo = existing || {
         id: cleanId,
         name: `Express Train #${cleanId}`,
-        route: `Live Corridor Query #${cleanId}`,
-        origin: 'Howrah Junction (HWH)',
-        destination: 'Chennai Central (MAS)',
+        route: `Custom Route Query #${cleanId}`,
+        origin: 'Origin Station',
+        destination: 'Destination Station',
         status: 'CUSTOM TRAIN • ML Query Active',
-        speed: '105 km/h',
+        speed: '100 km/h',
         zone: 'IR Network'
       };
-      setTrainList((prev) => [customTrain, ...prev]);
+      setTrainList((prev) => [newTrain, ...prev]);
     }
     
     setSelectedTrainIdState(cleanId);
@@ -155,3 +166,4 @@ export function useTrain(): TrainContextValue {
   }
   return context;
 }
+

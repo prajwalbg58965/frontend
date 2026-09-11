@@ -51,7 +51,9 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<Error | null>(null);
-  const { selectedTrainId } = useTrain();
+  const { selectedTrainId, getTrainInfo } = useTrain();
+
+  const activeTrain = getTrainInfo(selectedTrainId);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -138,8 +140,9 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
         <div className="absolute top-4 left-4 z-20 pointer-events-none">
           <div className="panel px-3 py-2 text-xs font-mono text-rail-text shadow-panel whitespace-nowrap flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-rail-accent animate-ping" />
-            <span>Tracking Train #{selectedTrainId}</span>
-            <span className="text-rail-textMuted text-[11px]">• HWH → BLS</span>
+            <span className="font-bold">Tracking #{activeTrain.id}</span>
+            <span className="text-rail-accent font-semibold">({activeTrain.name})</span>
+            <span className="text-rail-textMuted text-[11px]">• {activeTrain.route}</span>
           </div>
         </div>
         {children}
