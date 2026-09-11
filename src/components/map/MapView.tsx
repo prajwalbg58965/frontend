@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapLegend } from './MapLegend';
 import { MapLayers } from './MapLayers';
+import { useTrain } from '../../context/TrainContext';
 import type { Coordinates } from '../../types/domain';
 
 const DEFAULT_CENTER: Coordinates = { latitude: 21.49, longitude: 86.94 };
@@ -50,6 +51,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<Error | null>(null);
+  const { selectedTrainId } = useTrain();
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -134,8 +136,10 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
         <MapLegend />
         <MapLayers />
         <div className="absolute top-4 left-4 z-20 pointer-events-none">
-          <div className="panel px-3 py-2 text-xs font-mono text-rail-textMuted shadow-panel whitespace-nowrap">
-            Demo Corridor: HWH → BLS → KGP
+          <div className="panel px-3 py-2 text-xs font-mono text-rail-text shadow-panel whitespace-nowrap flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-rail-accent animate-ping" />
+            <span>Tracking Train #{selectedTrainId}</span>
+            <span className="text-rail-textMuted text-[11px]">• HWH → BLS</span>
           </div>
         </div>
         {children}

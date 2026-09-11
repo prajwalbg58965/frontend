@@ -94,21 +94,44 @@ interface TrainContextValue {
 const TrainContext = createContext<TrainContextValue | null>(null);
 
 export function TrainProvider({ children }: { children: ReactNode }) {
-  const [selectedTrainId, setSelectedTrainId] = useState<string>('12841');
+  const [selectedTrainId, setSelectedTrainIdState] = useState<string>('12841');
+  const [trainList, setTrainList] = useState<TrainInfo[]>(POPULAR_TRAINS);
 
   const getTrainInfo = (id: string): TrainInfo => {
-    const found = POPULAR_TRAINS.find((t) => t.id === id);
+    const found = trainList.find((t) => t.id === id);
     if (found) return found;
     return {
       id,
-      name: `Train #${id}`,
-      route: `Route for Train ${id}`,
-      origin: 'Station A',
-      destination: 'Station B',
+      name: `Express Train #${id}`,
+      route: `Live Corridor Query #${id}`,
+      origin: 'Howrah Junction (HWH)',
+      destination: 'Chennai Central (MAS)',
       status: 'CUSTOM TRAIN • ML Query Active',
-      speed: '100 km/h',
+      speed: '105 km/h',
       zone: 'IR Network'
     };
+  };
+
+  const setSelectedTrainId = (id: string) => {
+    const cleanId = id.trim();
+    if (!cleanId) return;
+    
+    // If it's a new custom train ID not in list, add it dynamically
+    if (!trainList.some((t) => t.id === cleanId)) {
+      const customTrain: TrainInfo = {
+        id: cleanId,
+        name: `Express Train #${cleanId}`,
+        route: `Live Corridor Query #${cleanId}`,
+        origin: 'Howrah Junction (HWH)',
+        destination: 'Chennai Central (MAS)',
+        status: 'CUSTOM TRAIN • ML Query Active',
+        speed: '105 km/h',
+        zone: 'IR Network'
+      };
+      setTrainList((prev) => [customTrain, ...prev]);
+    }
+    
+    setSelectedTrainIdState(cleanId);
   };
 
   return (
@@ -117,7 +140,7 @@ export function TrainProvider({ children }: { children: ReactNode }) {
         selectedTrainId,
         setSelectedTrainId,
         getTrainInfo,
-        popularTrains: POPULAR_TRAINS
+        popularTrains: trainList
       }}
     >
       {children}
