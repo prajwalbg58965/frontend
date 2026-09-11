@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useETAPredictionStatus } from '../../hooks/useEta';
 import { formatTimeString } from '../../utils/geo';
 
@@ -6,7 +7,8 @@ interface EtaPanelProps {
 }
 
 export function EtaPanel({ trainId = '12841' }: EtaPanelProps) {
-  const { eta, isLoading, isError, secondsSinceUpdate, refetch } = useETAPredictionStatus(trainId);
+  const [selectedTrainId, setSelectedTrainId] = useState<string>(trainId);
+  const { eta, isLoading, isError, secondsSinceUpdate, refetch } = useETAPredictionStatus(selectedTrainId);
 
   return (
     <section className="panel p-4 transition-all duration-200" data-panel-id="eta-panel">
@@ -23,7 +25,26 @@ export function EtaPanel({ trainId = '12841' }: EtaPanelProps) {
               ETA Intelligence
               <span className="badge badge-blue text-[10px] uppercase font-mono">SIH26028 Core</span>
             </h3>
-            <p className="text-[11px] text-rail-textMuted font-mono">Train #{trainId} • Person 1 Model</p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[11px] text-rail-textMuted font-mono">Train #</span>
+              <input
+                type="text"
+                value={selectedTrainId}
+                onChange={(e) => setSelectedTrainId(e.target.value)}
+                placeholder="12841"
+                className="w-16 px-1.5 py-0.5 bg-rail-bg border border-rail-border rounded text-xs font-mono font-bold text-rail-accent focus:outline-none focus:border-rail-accent"
+              />
+              <select
+                value={selectedTrainId}
+                onChange={(e) => setSelectedTrainId(e.target.value)}
+                className="px-1.5 py-0.5 bg-rail-bg border border-rail-border rounded text-[11px] font-mono text-rail-textMuted focus:outline-none"
+              >
+                <option value="12841">12841 (Coromandel Exp)</option>
+                <option value="12839">12839 (Howrah Mail)</option>
+                <option value="12863">12863 (Howrah SF Exp)</option>
+                <option value="12626">12626 (Kerala Exp)</option>
+              </select>
+            </div>
           </div>
         </div>
 
