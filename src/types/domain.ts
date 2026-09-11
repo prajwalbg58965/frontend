@@ -39,30 +39,6 @@ export interface ETAPrediction {
   readonly timestamp: string;
 }
 
-// Person 1 Real ETA API types
-export interface ETAPredictRequest {
-  readonly train_number: string;
-  readonly current_station: string;
-  readonly next_station: string;
-  readonly current_delay_min: number;
-  readonly distance_to_next_km: number;
-  readonly historical_section_avg_delay: number;
-  readonly section_historical_median_delay: number;
-  readonly section_historical_std_delay: number;
-  readonly section_historical_count: number;
-  readonly train_historical_avg_delay: number;
-  readonly day_of_week: number;
-  readonly time_of_day: number;
-}
-
-export interface ETAPredictResponse {
-  readonly predicted_delay_min: number;
-  readonly confidence_low_min: number;
-  readonly confidence_high_min: number;
-  readonly confidence_pct: number;
-  readonly baseline_mae_min: number;
-}
-
 export interface RiskSegment {
   readonly segmentId: string;
   readonly name: string;

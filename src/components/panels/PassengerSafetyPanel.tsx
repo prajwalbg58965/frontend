@@ -1,196 +1,142 @@
+import { useState } from 'react';
 import { useIncidentAlertsStatus } from '../../hooks/useIncident';
 import { useLivePositionsStatus } from '../../hooks/useLivePositions';
-import { useState } from 'react';
 
 export function PassengerSafetyPanel() {
   const { activeIncident } = useIncidentAlertsStatus();
   const { positions } = useLivePositionsStatus();
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
 
-  const affectedCoachId = activeIncident?.coachId ?? null;
-  const hasActiveIncident = !!activeIncident;
+  const [selectedCoachId, setSelectedCoachId] = useState<string>('B2');
+  const [safeCount, setSafeCount] = useState<number>(3);
+  const [hasCheckedIn, setHasCheckedIn] = useState<boolean>(false);
 
-  const getCoachData = (coachId: string) => {
-    return positions.find(c => c.coachId === coachId);
-  };
+  const activeCoach = activeIncident?.coachId || selectedCoachId;
+  const estimatedCount = activeIncident?.passengerEstimate || 5;
+  const pendingCount = Math.max(0, estimatedCount - safeCount);
+  const safePercentage = Math.round((safeCount / estimatedCount) * 100);
 
-  const affectedCoach = affectedCoachId ? getCoachData(affectedCoachId) : null;
-
-  const [safeCount, setSafeCount] = useState(0);
-  const [isSafeConfirmed, setIsSafeConfirmed] = useState(false);
-
-  const estimatedPassengers = affectedCoach ? 5 : 0;
-  const pendingCount = Math.max(0, estimatedPassengers - safeCount);
-  const allSafe = safeCount >= estimatedPassengers && estimatedPassengers > 0;
-  const progressPercent = estimatedPassengers > 0 ? (safeCount / estimatedPassengers) * 100 : 0;
-
-  const handleSafeClick = () => {
-    if (!isSafeConfirmed && safeCount < estimatedPassengers) {
+  const handleImSafeClick = () => {
+    if (!hasCheckedIn && safeCount < estimatedCount) {
       setSafeCount(prev => prev + 1);
-      setIsSafeConfirmed(true);
+      setHasCheckedIn(true);
     }
   };
 
   const handleReset = () => {
-    setSafeCount(0);
-    setIsSafeConfirmed(false);
+    setSafeCount(3);
+    setHasCheckedIn(false);
   };
 
-  if (!hasActiveIncident) {
-    return (
-      <section className="panel panel-hover p-4" data-panel-id="passenger-safety">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-medium text-rail-text flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500" />
-            Passenger Safety
-          </h3>
-          <span className="badge badge-blue">Demo Mockup</span>
-        </div>
-        <div className="text-center py-6">
-          <svg className="mx-auto mb-2 w-10 h-10 text-green-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-sm text-green-500 font-medium">NO ACTIVE INCIDENT</p>
-          <p className="text-xs text-rail-textMuted mt-1">Passenger safety activates during Incident Mode</p>
-        </div>
-        <div className="pt-2 border-t border-rail-border flex items-center justify-between text-xs">
-          <span className="text-rail-textMuted/60 font-mono">
-            Awaiting incident
-          </span>
-          <span className="badge badge-blue text-xs">Demo Mockup</span>
-        </div>
-      </section>
-    );
-  }
-
-  if (!affectedCoach) {
-    return (
-      <section className="panel panel-hover p-4" data-panel-id="passenger-safety">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-medium text-rail-text flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-yellow-500" />
-            Passenger Safety
-          </h3>
-          <span className="badge badge-yellow">Demo Mockup</span>
-        </div>
-        <div className="text-center py-4 text-rail-textMuted">
-          <p className="text-sm">Incident active but coach data unavailable</p>
-          <p className="text-xs mt-1">Affected coach: {affectedCoachId}</p>
-        </div>
-        <div className="pt-2 border-t border-rail-border flex items-center justify-between text-xs">
-          <span className="text-rail-textMuted/60 font-mono">
-            Coach data missing
-          </span>
-          <span className="badge badge-yellow text-xs">Demo Mockup</span>
-        </div>
-      </section>
-    );
-  }
-
-  const progressColor = allSafe ? '#22c55e' : '#00d4aa';
-
   return (
-    <section className="panel panel-hover p-4 border-l-4" style={{ borderLeftColor: progressColor }} data-panel-id="passenger-safety">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-medium text-rail-text flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: progressColor }} />
-          Passenger Safety
-        </h3>
-        <span className="badge badge-blue">Demo Mockup</span>
+    <section className="panel p-4 transition-all duration-200" data-panel-id="passenger-safety font-sans">
+      {/* Panel Header */}
+      <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-rail-border">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-md bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-semibold text-rail-text text-sm flex items-center gap-2">
+              "I'm Safe" Reunification
+            </h3>
+            <p className="text-[11px] text-rail-textMuted font-mono">Person 4 • Passenger Check-in Mockup</p>
+          </div>
+        </div>
+
+        <span className="badge badge-blue text-[10px] uppercase font-mono">UI Mockup</span>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-rail-textMuted">Coach</span>
-          <span className="font-mono text-lg font-semibold text-rail-text">{affectedCoach.coachId}</span>
+      {/* Coach Selection Tabs */}
+      <div className="mb-3">
+        <label className="text-[11px] text-rail-textMuted uppercase font-mono block mb-1">Select Coach Identifier</label>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+          {['B2', 'B3', 'A1', 'S4'].map((coachId) => (
+            <button
+              key={coachId}
+              onClick={() => {
+                setSelectedCoachId(coachId);
+                setSafeCount(3);
+                setHasCheckedIn(false);
+              }}
+              className={`px-3 py-1 rounded text-xs font-mono font-semibold transition-colors ${
+                activeCoach === coachId
+                  ? 'bg-rail-accent text-rail-bg'
+                  : 'bg-rail-bg border border-rail-border text-rail-textMuted hover:text-rail-text'
+              }`}
+            >
+              COACH {coachId} {activeIncident?.coachId === coachId ? '⚠️' : ''}
+            </button>
+          ))}
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 pt-1 border-t border-rail-border">
-          <span className="text-xs text-rail-textMuted">Estimated passengers</span>
-          <span className="font-mono text-lg font-semibold text-rail-text">{estimatedPassengers}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-rail-textMuted">Checked in safe</span>
-          <span className="font-mono text-lg font-semibold" style={{ color: progressColor }}>{safeCount}</span>
-        </div>
-
-        <div className="flex items-center gap-2 pt-1 border-t border-rail-border">
-          <span className="text-xs text-rail-textMuted">Pending</span>
-          <span className="font-mono text-lg font-semibold text-yellow-500">{pendingCount}</span>
-        </div>
-
-        <div className="pt-2 border-t border-rail-border">
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-rail-textMuted">Progress</span>
-            <span className="font-mono text-rail-textMuted">{safeCount} / {estimatedPassengers}</span>
+      {/* Safety Status Card */}
+      <div className="bg-rail-bg/80 border border-rail-border p-3 rounded-lg space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-[11px] text-rail-textMuted uppercase font-mono block">Target Coach</span>
+            <span className="text-xl font-bold font-mono text-rail-text">COACH {activeCoach}</span>
           </div>
-          <div className="h-2 bg-rail-bg rounded-full overflow-hidden" role="progressbar" aria-valuenow={safeCount} aria-valuemin={0} aria-valuemax={estimatedPassengers} aria-label="Safe check-in progress">
-            <div 
-              className="h-full rounded-full transition-all duration-300" 
-              style={{ width: `${progressPercent}%`, backgroundColor: progressColor }}
-            />
-          </div>
-          <div className="flex justify-between text-[10px] text-rail-textMuted mt-1 font-mono">
-            <span>Safe: {safeCount}</span>
-            <span>Pending: {pendingCount}</span>
+
+          <div className="text-right">
+            <span className="text-[11px] text-rail-textMuted uppercase font-mono block">Safety Check Rate</span>
+            <span className="text-xl font-bold font-mono text-green-400">{safePercentage}%</span>
           </div>
         </div>
 
-        {allSafe && estimatedPassengers > 0 && (
-          <div className="pt-2 border-t border-rail-border text-center p-3" style={{ backgroundColor: `${progressColor}15`, borderRadius: '6px' }}>
-            <svg className="mx-auto mb-1 w-5 h-5" fill="none" stroke={progressColor} strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="font-mono text-sm font-semibold" style={{ color: progressColor }}>
-              ALL ESTIMATED PASSENGERS CHECKED SAFE
-            </div>
-            <div className="text-[10px] text-rail-textMuted mt-1">
-              DEMO REUNIFICATION STATUS
-            </div>
+        {/* Progress Bar */}
+        <div className="space-y-1">
+          <div className="h-2.5 bg-rail-panel rounded-full overflow-hidden border border-rail-border flex">
+            <div
+              className="bg-green-500 transition-all duration-300"
+              style={{ width: `${(safeCount / estimatedCount) * 100}%` }}
+            ></div>
+            <div
+              className="bg-yellow-500/60 transition-all duration-300"
+              style={{ width: `${(pendingCount / estimatedCount) * 100}%` }}
+            ></div>
           </div>
-        )}
 
-        {!allSafe && estimatedPassengers > 0 && (
-          <button
-            onClick={handleSafeClick}
-            disabled={isSafeConfirmed}
-            className="w-full py-3 mt-2 rounded-lg font-semibold text-lg transition-all duration-200"
-            style={{
-              backgroundColor: isSafeConfirmed ? '#161f2b' : '#00d4aa',
-              color: isSafeConfirmed ? '#7a8d9c' : '#0a0f14',
-              border: '2px solid',
-              borderColor: isSafeConfirmed ? '#1e2a38' : '#00d4aa',
-              cursor: isSafeConfirmed ? 'not-allowed' : 'pointer',
-              opacity: isSafeConfirmed ? 0.7 : 1,
-            }}
-            aria-pressed={isSafeConfirmed}
-            aria-label={isSafeConfirmed ? 'Safe confirmed - demo passenger checked in' : 'Mark demo passenger as safe'}
-          >
-            {isSafeConfirmed ? 'SAFE CONFIRMED' : 'I\'M SAFE'}
-          </button>
-        )}
+          <div className="flex items-center justify-between text-xs font-mono pt-1">
+            <span className="text-green-400 font-medium">✓ {safeCount} Safe</span>
+            <span className="text-yellow-400 font-medium">⏳ {pendingCount} Pending</span>
+            <span className="text-rail-textMuted">Est: {estimatedCount}</span>
+          </div>
+        </div>
+      </div>
 
-        {allSafe && estimatedPassengers > 0 && (
+      {/* Interactive Mock Action Button */}
+      <div className="mt-3 space-y-2">
+        <button
+          onClick={handleImSafeClick}
+          disabled={hasCheckedIn || safeCount >= estimatedCount}
+          className={`w-full py-2.5 px-4 rounded-lg font-bold text-sm uppercase tracking-wider font-mono transition-all shadow-md flex items-center justify-center gap-2 ${
+            hasCheckedIn
+              ? 'bg-green-500/20 text-green-400 border border-green-500/40 cursor-not-allowed'
+              : 'bg-green-500 hover:bg-green-600 text-rail-bg active:scale-[0.98]'
+          }`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>{hasCheckedIn ? "Checked In Safe ✓" : "[ I'M SAFE ]"}</span>
+        </button>
+
+        {hasCheckedIn && (
           <button
             onClick={handleReset}
-            className="w-full py-2 mt-2 rounded-lg font-medium text-sm text-rail-textMuted border border-rail-border hover:border-rail-accent hover:text-rail-accent transition-colors"
+            className="w-full text-center text-[11px] text-rail-textMuted hover:text-rail-text underline font-mono py-1"
           >
-            Reset Demo
+            Reset Check-in Counter
           </button>
         )}
+      </div>
 
-        <div className="pt-2 border-t border-rail-border flex items-center justify-between text-xs">
-          <span className="text-rail-textMuted/60 font-mono">
-            Coach {affectedCoach.coachId} • Estimated: {estimatedPassengers}
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="badge badge-blue text-xs">Demo Mockup</span>
-            <span className="text-red-500/80 text-[10px] font-mono">
-              UI Mockup — Not a live passenger system
-            </span>
-          </div>
-        </div>
+      {/* Mandatory Honesty Rule Label */}
+      <div className="mt-3 pt-2 border-t border-rail-border/60 text-[10px] text-rail-textMuted font-mono text-center">
+        ⚠️ Passenger Safety Status Mockup — UI demonstration only
       </div>
     </section>
   );

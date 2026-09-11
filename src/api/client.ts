@@ -1,20 +1,16 @@
 import type { ApiResult, ApiError } from '../types/domain';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-const ETA_API_BASE_URL = import.meta.env.VITE_ETA_API_BASE_URL || '';
 
 class ApiClient {
   private baseUrl: string;
-  private etaBaseUrl: string;
 
-  constructor(baseUrl: string = API_BASE_URL, etaBaseUrl: string = ETA_API_BASE_URL) {
+  constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-    this.etaBaseUrl = etaBaseUrl;
   }
 
-  private async request<T>(endpoint: string, options?: RequestInit, useEtaBase = false): Promise<ApiResult<T>> {
-    const baseUrl = useEtaBase ? this.etaBaseUrl : this.baseUrl;
-    const url = `${baseUrl}${endpoint}`;
+  private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResult<T>> {
+    const url = `${this.baseUrl}${endpoint}`;
 
     try {
       const response = await fetch(url, {
@@ -48,9 +44,8 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string, params?: Record<string, unknown>, useEtaBase = false): Promise<ApiResult<T>> {
-    const baseUrl = useEtaBase ? this.etaBaseUrl : this.baseUrl;
-    const url = new URL(endpoint, baseUrl);
+  async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<ApiResult<T>> {
+    const url = new URL(endpoint, this.baseUrl);
     if (params) {
       (Object.entries(params) as [string, unknown][]).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -58,14 +53,14 @@ class ApiClient {
         }
       });
     }
-    return this.request<T>(url.pathname + url.search, undefined, useEtaBase);
+    return this.request<T>(url.pathname + url.search);
   }
 
-  async post<T>(endpoint: string, body: unknown, useEtaBase = false): Promise<ApiResult<T>> {
+  async post<T>(endpoint: string, body: unknown): Promise<ApiResult<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(body),
-    }, useEtaBase);
+    });
   }
 }
 

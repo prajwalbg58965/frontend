@@ -78,7 +78,22 @@
   }
 
   .scrollbar-thin {
-    @apply scrollbar-thin scrollbar-track-rail-bg scrollbar-thumb-rail-borderHover;
+    scrollbar-width: thin;
+    scrollbar-color: #1e293b #0f172a;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 3px;
   }
 }
 

@@ -23,10 +23,12 @@ if (import.meta.env.DEV) {
   })
 }
 
+const isDemoEnabled = import.meta.env.VITE_DEMO_MODE !== 'false';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <DemoProvider enabled={import.meta.env.VITE_DEMO_MODE === 'true'}>
+      <DemoProvider enabled={isDemoEnabled}>
         <App />
       </DemoProvider>
       <ReactQueryDevtools initialIsOpen={false} />

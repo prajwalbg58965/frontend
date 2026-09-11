@@ -2,7 +2,6 @@ import { http, HttpResponse } from 'msw';
 import {
   generateLivePositions,
   generateETAPrediction,
-  generateETAPredictResponse,
   generateRiskScore,
   generateConfirmationLog,
   generateIncidentAlerts,
@@ -10,22 +9,6 @@ import {
   generateResponderLookup,
 } from './data';
 import type { LivePositionsParams, PredictEtaParams, RiskScoreParams, ConfirmationLogParams, IncidentAlertsParams, ResponderLookupParams } from '../api/contracts';
-
-interface ETAPredictRequestBody {
-  train_number: string;
-  current_station: string;
-  next_station: string;
-  current_delay_min: number;
-  distance_to_next_km: number;
-  historical_section_avg_delay: number;
-  section_historical_median_delay: number;
-  section_historical_std_delay: number;
-  section_historical_count: number;
-  train_historical_avg_delay: number;
-  day_of_week: number;
-  time_of_day: number;
-  [key: string]: unknown;
-}
 
 export const handlers = [
   http.get('/api/live-positions', ({ request }) => {
@@ -41,38 +24,6 @@ export const handlers = [
     const trainId = url.searchParams.get('trainId') || '12841';
     const data = generateETAPrediction(trainId);
     return HttpResponse.json(data);
-  }),
-
-  // Real ETA API (POST) - for Person 1 integration
-  http.post('/predict-eta/', async ({ request }) => {
-    try {
-      const body = await request.json() as ETAPredictRequestBody;
-      // Validate required fields
-      const requiredFields = [
-        'train_number', 'current_station', 'next_station', 'current_delay_min',
-        'distance_to_next_km', 'historical_section_avg_delay',
-        'section_historical_median_delay', 'section_historical_std_delay',
-        'section_historical_count', 'train_historical_avg_delay',
-        'day_of_week', 'time_of_day'
-      ];
-      
-      for (const field of requiredFields) {
-        if (body[field] === undefined || body[field] === null) {
-          return HttpResponse.json(
-            { detail: `Missing required field: ${field}` },
-            { status: 422 }
-          );
-        }
-      }
-      
-      const data = generateETAPredictResponse();
-      return HttpResponse.json(data);
-    } catch (e) {
-      return HttpResponse.json(
-        { detail: 'Invalid JSON body' },
-        { status: 400 }
-      );
-    }
   }),
 
   http.get('/api/risk-score', ({ request }) => {

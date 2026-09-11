@@ -10,6 +10,9 @@ interface DemoContextValue {
   pause: () => void;
   resume: () => void;
   reset: () => void;
+  jumpToPhase: (index: number) => void;
+  jumpToIncident: () => void;
+  setSpeedMultiplier: (speed: number) => void;
   isDemoMode: boolean;
 }
 
@@ -35,6 +38,9 @@ export function DemoProvider({ children, enabled = true }: { children: ReactNode
   const pause = useCallback(() => demoController.pause(), []);
   const resume = useCallback(() => demoController.resume(), []);
   const reset = useCallback(() => demoController.reset(), []);
+  const jumpToPhase = useCallback((index: number) => demoController.jumpToPhase(index), []);
+  const jumpToIncident = useCallback(() => demoController.jumpToIncident(), []);
+  const setSpeedMultiplier = useCallback((speed: number) => demoController.setSpeedMultiplier(speed), []);
 
   return (
     <DemoContext.Provider value={{
@@ -45,6 +51,9 @@ export function DemoProvider({ children, enabled = true }: { children: ReactNode
       pause,
       resume,
       reset,
+      jumpToPhase,
+      jumpToIncident,
+      setSpeedMultiplier,
       isDemoMode: enabled && state.state !== 'IDLE',
     }}>
       {children}

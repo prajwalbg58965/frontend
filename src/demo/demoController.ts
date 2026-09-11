@@ -12,6 +12,7 @@ export interface DemoControllerState {
   elapsedTime: number;
   phaseElapsed: number;
   phaseRemaining: number;
+  speedMultiplier: number;
 }
 
 export class DemoController {
@@ -24,11 +25,11 @@ export class DemoController {
     elapsedTime: 0,
     phaseElapsed: 0,
     phaseRemaining: 0,
+    speedMultiplier: 1,
   };
 
   private timer: ReturnType<typeof setTimeout> | null = null;
   private subscribers: Set<(state: DemoControllerState) => void> = new Set();
-  private speedMultiplier = 1;
   private lastTimestamp = 0;
   private accumulatedTime = 0;
 
@@ -39,7 +40,7 @@ export class DemoController {
   }
 
   private notify(): void {
-    this.subscribers.forEach(cb => cb(this.state));
+    this.subscribers.forEach(cb => cb({ ...this.state }));
   }
 
   private computeOverallProgress(): number {
@@ -71,6 +72,34 @@ export class DemoController {
       this.state.state = 'COMPLETE';
       this.state.currentPhase = 'COMPLETE';
       this.state.overallProgress = 100;
+    }
+  }
+
+  jumpToPhase(index: number): void {
+    if (index < 0 || index >= DEMO_TIMELINE.length) return;
+    this.state.currentPhaseIndex = index;
+    this.state.currentPhase = DEMO_TIMELINE[index].phase;
+    this.state.phaseElapsed = 0;
+    this.state.phaseProgress = 0;
+
+    let acc = 0;
+    for (let i = 0; i < index; i++) {
+      acc += DEMO_TIMELINE[i].duration;
+    }
+    this.accumulatedTime = acc;
+    this.updatePhaseProgress();
+
+    if (this.state.state === 'IDLE') {
+      this.state.state = 'PAUSED';
+    }
+    this.notify();
+  }
+
+  jumpToIncident(): void {
+    const incidentIndex = DEMO_TIMELINE.findIndex(e => e.phase === 'INCIDENT_TRIGGERED');
+    if (incidentIndex !== -1) {
+      this.jumpToPhase(incidentIndex);
+      this.start();
     }
   }
 
@@ -128,6 +157,7 @@ export class DemoController {
       elapsedTime: 0,
       phaseElapsed: 0,
       phaseRemaining: 0,
+      speedMultiplier: this.state.speedMultiplier,
     };
     this.accumulatedTime = 0;
     this.lastTimestamp = 0;
@@ -135,7 +165,8 @@ export class DemoController {
   }
 
   setSpeedMultiplier(multiplier: number): void {
-    this.speedMultiplier = Math.max(0.1, Math.min(10, multiplier));
+    this.state.speedMultiplier = Math.max(0.1, Math.min(10, multiplier));
+    this.notify();
   }
 
   getState(): DemoControllerState {
@@ -154,7 +185,7 @@ export class DemoController {
     if (this.state.state !== 'RUNNING') return;
 
     const now = performance.now();
-    const delta = (now - this.lastTimestamp) * this.speedMultiplier;
+    const delta = (now - this.lastTimestamp) * this.state.speedMultiplier;
     this.lastTimestamp = now;
 
     this.state.phaseElapsed += delta;

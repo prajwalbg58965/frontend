@@ -1,8 +1,6 @@
 import type {
   LivePositionsResponse,
   ETAPrediction,
-  ETAPredictRequest,
-  ETAPredictResponse,
   RiskScoreResponse,
   ConfirmationLogResponse,
   IncidentAlertsResponse,
@@ -45,25 +43,8 @@ export interface ResponderLookupParams {
   readonly [key: string]: unknown;
 }
 
-// Person 1 Real ETA API
-export interface PredictEtaRealParams {
-  readonly train_number: string;
-  readonly current_station: string;
-  readonly next_station: string;
-  readonly current_delay_min: number;
-  readonly distance_to_next_km: number;
-  readonly historical_section_avg_delay: number;
-  readonly section_historical_median_delay: number;
-  readonly section_historical_std_delay: number;
-  readonly section_historical_count: number;
-  readonly train_historical_avg_delay: number;
-  readonly day_of_week: number;
-  readonly time_of_day: number;
-}
-
 export interface ApiContracts {
   predictEta: (params: PredictEtaParams) => Promise<ApiResult<ETAPrediction>>;
-  predictEtaReal: (params: PredictEtaRealParams) => Promise<ApiResult<ETAPredictResponse>>;
   getLivePositions: (params: LivePositionsParams) => Promise<ApiResult<LivePositionsResponse>>;
   getRiskScore: (params: RiskScoreParams) => Promise<ApiResult<RiskScoreResponse>>;
   getConfirmationLog: (params: ConfirmationLogParams) => Promise<ApiResult<ConfirmationLogResponse>>;
@@ -73,7 +54,6 @@ export interface ApiContracts {
 
 export const ENDPOINTS = {
   predictEta: '/api/predict-eta',
-  predictEtaReal: '/predict-eta/',
   livePositions: '/api/live-positions',
   riskScore: '/api/risk-score',
   confirmationLog: '/api/confirmation-log',

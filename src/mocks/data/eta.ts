@@ -1,4 +1,4 @@
-import type { ETAPrediction, ETAPredictResponse, JunctionInfo } from '../../types/domain';
+import type { ETAPrediction, JunctionInfo } from '../../types/domain';
 import { getETAOverride } from '../../demo/demoDataBridge';
 
 const upcomingJunctions: readonly JunctionInfo[] = [
@@ -75,65 +75,9 @@ function buildETA(override?: { predictedArrival: string; delay: number; confiden
   };
 }
 
-// Real API mock response generator
-let realEtaCallCount = 0;
-
-function buildETAPredictResponse(override?: { 
-  predicted_delay_min: number; 
-  confidence_low_min: number; 
-  confidence_high_min: number; 
-  confidence_pct: number;
-  baseline_mae_min: number;
-} | null): ETAPredictResponse {
-  const now = new Date();
-  
-  if (override) {
-    return {
-      predicted_delay_min: override.predicted_delay_min,
-      confidence_low_min: override.confidence_low_min,
-      confidence_high_min: override.confidence_high_min,
-      confidence_pct: override.confidence_pct,
-      baseline_mae_min: override.baseline_mae_min,
-    };
-  }
-  
-  const baseDelay = 5.0;
-  const variation = Math.sin(realEtaCallCount * 0.3) * 3;
-  const predictedDelay = Math.round((baseDelay + variation) * 10) / 10;
-  const confidenceLow = Math.round((predictedDelay - 3) * 10) / 10;
-  const confidenceHigh = Math.round((predictedDelay + 5) * 10) / 10;
-  
-  realEtaCallCount += 1;
-  
-  return {
-    predicted_delay_min: predictedDelay,
-    confidence_low_min: confidenceLow,
-    confidence_high_min: confidenceHigh,
-    confidence_pct: 80,
-    baseline_mae_min: 9.8544,
-  };
-}
-
 export function generateETAPrediction(trainId = '12841'): ETAPrediction {
   const override = getETAOverride();
   return buildETA(override);
 }
 
-export function generateETAPredictResponse(): ETAPredictResponse {
-  const override = getETAOverride();
-  if (override) {
-    // Convert demo override to real API format
-    const delay = override.delay;
-    return {
-      predicted_delay_min: delay,
-      confidence_low_min: delay - 3,
-      confidence_high_min: delay + 5,
-      confidence_pct: 80,
-      baseline_mae_min: 9.8544,
-    };
-  }
-  return buildETAPredictResponse();
-}
-
 export const etaMock: ETAPrediction = buildETA();
-export const etaPredictMock: ETAPredictResponse = buildETAPredictResponse();
