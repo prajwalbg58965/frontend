@@ -1,0 +1,41 @@
+{
+  "responders": [
+    {
+      "id": "resp-1",
+      "name": "Balasore District Hospital",
+      "type": "Hospital",
+      "coordinates": [86.9500, 21.5000],
+      "contact": "+91-6782-262xxx",
+      "capabilities": ["Trauma", "Emergency Medicine", "Burn Unit"]
+    },
+    {
+      "id": "resp-2",
+      "name": "NDRF 2nd Battalion, Balasore",
+      "type": "NDRF",
+      "coordinates": [86.9200, 21.4800],
+      "contact": "+91-6782-275xxx",
+      "capabilities": ["Urban Search & Rescue", "Medical First Response", "CBRN"]
+    },
+    {
+      "id": "resp-3",
+      "name": "Kharagpur Railway Hospital",
+      "type": "Hospital",
+      "coordinates": [87.3100, 22.3400],
+      "contact": "+91-3222-255xxx",
+      "capabilities": ["Orthopedics", "General Surgery", "ICU"]
+    },
+    {
+      "id": "resp-4",
+      "name": "NDRF 1st Battalion, Guwahati (Reserve)",
+      "type": "NDRF",
+      "coordinates": [91.7362, 26.1445],
+      "contact": "+91-361-284xxxx",
+      "capabilities": ["Flood Rescue", "Rope Rescue", "Mass Casualty Management"]
+    }
+  ],
+  "metadata": {
+    "note": "Static responder reference — demo data only. Not a live emergency services integration.",
+    "lastUpdated": "2026-09-09",
+    "source": "RailSentinel SIH26028 demo dataset"
+  }
+}

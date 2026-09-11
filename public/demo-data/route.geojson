@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Howrah - Balasore - Kharagpur Corridor",
+        "description": "Demo route for RailSentinel SIH26028"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [88.2636, 22.5726],
+          [87.8500, 22.3500],
+          [87.4500, 22.1000],
+          [87.0500, 21.8500],
+          [86.9500, 21.5000],
+          [86.8500, 21.1500],
+          [87.1000, 20.8000],
+          [87.3000, 20.4500],
+          [87.5000, 20.1000],
+          [87.6500, 19.7500],
+          [87.8000, 19.4000],
+          [87.9500, 19.0500]
+        ]
+      }
+    }
+  ]
+}

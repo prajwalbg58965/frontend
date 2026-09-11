@@ -1,0 +1,79 @@
+{
+  "scenario": "Balasore Corridor - Flood & Incident Demo",
+  "description": "Deterministic demo timeline for SIH26028 presentation",
+  "baseTime": "2026-09-09T10:00:00+05:30",
+  "speedMultiplier": 1,
+  "events": [
+    {
+      "timestamp": 0,
+      "label": "Demo Start",
+      "actions": {
+        "trainPosition": { "progress": 0.15, "speed": 85 },
+        "eta": { "predictedArrival": "11:25", "delay": 0, "confidence": [1120, 1135] },
+        "risk": { "level": "LOW", "segments": [] },
+        "confirmations": [{ "location": "Howrah Jn", "status": "CLEAR", "time": "10:00" }],
+        "incidents": []
+      }
+    },
+    {
+      "timestamp": 30000,
+      "label": "Approaching Bhadrak",
+      "actions": {
+        "trainPosition": { "progress": 0.35, "speed": 92 },
+        "eta": { "predictedArrival": "11:22", "delay": -3, "confidence": [1118, 1128] },
+        "risk": { "level": "LOW", "segments": [] },
+        "confirmations": [{ "location": "Bhadrak", "status": "CLEAR", "time": "10:30" }],
+        "incidents": []
+      }
+    },
+    {
+      "timestamp": 60000,
+      "label": "Flood Alert - Jaleswar Segment",
+      "actions": {
+        "trainPosition": { "progress": 0.52, "speed": 78 },
+        "eta": { "predictedArrival": "11:28", "delay": 3, "confidence": [1122, 1140] },
+        "risk": { "level": "MEDIUM", "segments": [{ "id": "seg-jaleswar", "riskLevel": "MEDIUM", "floodDepth": 120, "weatherAlert": "Heavy rainfall warning" }] },
+        "confirmations": [{ "location": "Jaleswar", "status": "CAUTION - Water level rising", "time": "11:00" }],
+        "incidents": []
+      }
+    },
+    {
+      "timestamp": 90000,
+      "label": "Incident Triggered - Coach B2 Derailment Risk",
+      "actions": {
+        "trainPosition": { "progress": 0.61, "speed": 0 },
+        "eta": { "predictedArrival": "12:15", "delay": 50, "confidence": [1200, 1245] },
+        "risk": { "level": "HIGH", "segments": [{ "id": "seg-jaleswar", "riskLevel": "HIGH", "floodDepth": 280, "weatherAlert": "Flash flood warning" }] },
+        "confirmations": [{ "location": "Jaleswar", "status": "BLOCKED - Track inundated", "time": "11:30" }],
+        "incidents": [{
+          "id": "inc-001",
+          "type": "TRACK_INUNDATION",
+          "coachId": "B2",
+          "coordinates": [86.95, 21.50],
+          "severity": "CRITICAL",
+          "passengerEstimate": 72,
+          "timestamp": "11:30"
+        }]
+      }
+    },
+    {
+      "timestamp": 120000,
+      "label": "Emergency Response Activated",
+      "actions": {
+        "trainPosition": { "progress": 0.61, "speed": 0 },
+        "eta": { "predictedArrival": "13:30", "delay": 125, "confidence": [1300, 1430] },
+        "risk": { "level": "HIGH", "segments": [{ "id": "seg-jaleswar", "riskLevel": "HIGH", "floodDepth": 320, "weatherAlert": "Flash flood warning" }] },
+        "confirmations": [{ "location": "Balasore", "status": "NDRF DEPLOYED", "time": "11:45" }],
+        "incidents": [{
+          "id": "inc-001",
+          "type": "TRACK_INUNDATION",
+          "coachId": "B2",
+          "coordinates": [86.95, 21.50],
+          "severity": "CRITICAL",
+          "passengerEstimate": 72,
+          "timestamp": "11:30"
+        }]
+      }
+    }
+  ]
+}
