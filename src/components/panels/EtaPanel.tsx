@@ -1,14 +1,15 @@
-import { useState } from 'react';
 import { useETAPredictionStatus } from '../../hooks/useEta';
 import { formatTimeString } from '../../utils/geo';
+import { useTrain } from '../../context/TrainContext';
 
 interface EtaPanelProps {
   trainId?: string;
 }
 
-export function EtaPanel({ trainId = '12841' }: EtaPanelProps) {
-  const [selectedTrainId, setSelectedTrainId] = useState<string>(trainId);
-  const { eta, isLoading, isError, secondsSinceUpdate, refetch } = useETAPredictionStatus(selectedTrainId);
+export function EtaPanel({ trainId }: EtaPanelProps) {
+  const { selectedTrainId, setSelectedTrainId, popularTrains } = useTrain();
+  const activeTrainId = trainId || selectedTrainId;
+  const { eta, isLoading, isError, secondsSinceUpdate, refetch } = useETAPredictionStatus(activeTrainId);
 
   return (
     <section className="panel p-4 transition-all duration-200" data-panel-id="eta-panel">
@@ -37,12 +38,13 @@ export function EtaPanel({ trainId = '12841' }: EtaPanelProps) {
               <select
                 value={selectedTrainId}
                 onChange={(e) => setSelectedTrainId(e.target.value)}
-                className="px-1.5 py-0.5 bg-rail-bg border border-rail-border rounded text-[11px] font-mono text-rail-textMuted focus:outline-none"
+                className="px-1.5 py-0.5 bg-rail-bg border border-rail-border rounded text-[11px] font-mono text-rail-textMuted focus:outline-none max-w-[120px] truncate"
               >
-                <option value="12841">12841 (Coromandel Exp)</option>
-                <option value="12839">12839 (Howrah Mail)</option>
-                <option value="12863">12863 (Howrah SF Exp)</option>
-                <option value="12626">12626 (Kerala Exp)</option>
+                {popularTrains.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.id} ({t.name})
+                  </option>
+                ))}
               </select>
             </div>
           </div>

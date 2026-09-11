@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { DemoControls, DemoTimelineIndicator } from '../../demo/DemoControls';
 import { useIncidentAlertsStatus } from '../../hooks/useIncident';
 import { useDemo } from '../../demo/DemoContext';
+import { TrainSearchBar } from '../search/TrainSearchBar';
 
 interface HeaderProps {
   onOpenPitchModal?: () => void;
@@ -38,15 +39,15 @@ export function Header({ onOpenPitchModal }: HeaderProps) {
         </div>
       )}
 
-      <div className="max-w-full h-14 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="max-w-full h-14 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         {/* Left Logo and Title */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <div className={`flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0 shadow-lg ${hasActiveIncident ? 'bg-red-500 text-white' : 'bg-rail-accent text-rail-bg'}`}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
             </svg>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 hidden sm:block">
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-rail-text tracking-tight truncate">RailSentinel</h1>
               <span className="badge badge-blue text-[10px] uppercase font-mono">SIH26028</span>
@@ -55,10 +56,15 @@ export function Header({ onOpenPitchModal }: HeaderProps) {
           </div>
         </div>
 
-        {/* Center/Right Actions */}
-        <div className="flex items-center gap-3 flex-wrap">
+        {/* Center Prominent Train Search Bar */}
+        <div className="flex-1 max-w-md mx-2">
+          <TrainSearchBar />
+        </div>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-3 flex-shrink-0">
           {/* Status Badge */}
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono font-medium ${
+          <div className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono font-medium ${
             hasActiveIncident 
               ? 'bg-red-500/20 text-red-400 border-red-500/40'
               : 'bg-green-500/10 text-green-400 border-green-500/30'
@@ -68,7 +74,7 @@ export function Header({ onOpenPitchModal }: HeaderProps) {
           </div>
 
           {/* Clock */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-rail-bg border border-rail-border font-mono text-xs text-rail-text">
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-rail-bg border border-rail-border font-mono text-xs text-rail-text">
             <span>🕐</span>
             <span className="tabular-nums">{formatTime(time)} IST</span>
           </div>
@@ -77,7 +83,7 @@ export function Header({ onOpenPitchModal }: HeaderProps) {
           {onOpenPitchModal && (
             <button
               onClick={onOpenPitchModal}
-              className="btn bg-rail-accent/10 hover:bg-rail-accent/20 text-rail-accent border border-rail-accent/30 text-xs px-3 py-1 flex items-center gap-1.5 font-medium transition-colors"
+              className="btn bg-rail-accent/10 hover:bg-rail-accent/20 text-rail-accent border border-rail-accent/30 text-xs px-3 py-1 hidden sm:flex items-center gap-1.5 font-medium transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
