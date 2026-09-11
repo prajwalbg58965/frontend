@@ -1,6 +1,7 @@
-import { etaApiClient, apiClient } from '../client';
+import { etaApiClient } from '../client';
 import type { ETAPrediction, ApiResult } from '../../types/domain';
 import { type PredictEtaParams } from '../contracts';
+import { getETAOverride } from '../../demo/demoDataBridge';
 
 export interface P1ETARequest {
   train_number: string;
@@ -73,6 +74,20 @@ export const etaService = {
       return res;
     }
 
-    return apiClient.get<ETAPrediction>('/api/predict-eta', params);
+    const demoData = getETAOverride() || { predictedArrival: '11:25', delay: 0, confidence: ['11:20', '11:35'] };
+    return {
+      success: true,
+      data: {
+        trainId: String(params.trainId || '12841'),
+        predictedArrival: demoData.predictedArrival,
+        delayMinutes: demoData.delay,
+        confidenceRange: {
+          earliest: demoData.confidence[0],
+          latest: demoData.confidence[1],
+        },
+        upcomingJunctions: [],
+        timestamp: new Date().toISOString(),
+      },
+    };
   },
 };

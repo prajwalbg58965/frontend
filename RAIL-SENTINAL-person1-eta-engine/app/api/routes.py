@@ -168,10 +168,10 @@ def predict_eta(request: ETAPredictRequest) -> ETAPredictResponse:
     p50 = sorted_preds[1]  # middle -> P50
     p90 = sorted_preds[2]  # highest -> P90
 
-    # Compute interval width and coverage
-    confidence_low_min = p10
-    predicted_delay_min = p50
-    confidence_high_min = p90
+    # Compute interval width and coverage (clamped to >= 0 for physical delay)
+    confidence_low_min = max(0.0, p10)
+    predicted_delay_min = max(0.0, p50)
+    confidence_high_min = max(0.0, p90)
     confidence_pct = 80  # P10-P90 = 80% interval
     baseline_mae_min = 9.8544  # naive baseline from Task 20/21c
 

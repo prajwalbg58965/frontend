@@ -1,6 +1,7 @@
-import { confirmationApiClient, apiClient } from '../client';
+import { confirmationApiClient } from '../client';
 import type { ConfirmationLogResponse, ConfirmationEvent, ApiResult } from '../../types/domain';
 import { type ConfirmationLogParams } from '../contracts';
+import { getConfirmationOverride } from '../../demo/demoDataBridge';
 
 export interface P3ConfirmationEscalationStatus {
   escalation_timeout: number;
@@ -51,6 +52,21 @@ export const confirmationService = {
       return res;
     }
 
-    return apiClient.get<ConfirmationLogResponse>('/api/confirmation-log', params);
+    const demoConf = getConfirmationOverride() || [{ location: 'Howrah Jn', status: 'CLEAR', time: '10:00' }];
+    const events: ConfirmationEvent[] = demoConf.map((c, i) => ({
+      eventId: `CONF-${i + 1}`,
+      location: c.location,
+      status: (c.status as any) || 'CLEAR',
+      timestamp: c.time,
+      confirmedBy: 'STATION_MASTER',
+    }));
+
+    return {
+      success: true,
+      data: {
+        events,
+        lastUpdated: new Date().toISOString(),
+      },
+    };
   },
 };

@@ -1,6 +1,7 @@
-import { incidentApiClient, apiClient } from '../client';
+import { incidentApiClient } from '../client';
 import type { IncidentAlertsResponse, IncidentAlert, ApiResult } from '../../types/domain';
 import { type IncidentAlertsParams } from '../contracts';
+import { getIncidentOverride } from '../../demo/demoDataBridge';
 
 export interface P3AlertItem {
   id: string;
@@ -54,7 +55,29 @@ export const incidentsService = {
       return res;
     }
 
-    return apiClient.get<IncidentAlertsResponse>('/api/incident-alerts', params);
+    const demoIncidentState = getIncidentOverride();
+    const incidents: IncidentAlert[] = [];
+    if (demoIncidentState && demoIncidentState.triggered && !demoIncidentState.resolved) {
+      incidents.push({
+        incidentId: 'INC-DEMO-01',
+        type: 'DERAILMENT_RISK',
+        coachId: 'B2',
+        coordinates: { latitude: 20.2970, longitude: 85.8250 },
+        severity: 'CRITICAL',
+        passengerEstimate: 72,
+        description: 'Obstruction detected on track segment B2',
+        timestamp: new Date().toISOString(),
+        acknowledged: false,
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        incidents,
+        timestamp: new Date().toISOString(),
+      },
+    };
   },
 
   acknowledgeIncident: async (incidentId: string): Promise<ApiResult<{ success: boolean; incidentId: string; acknowledgedAt: string }>> => {
@@ -74,9 +97,13 @@ export const incidentsService = {
       return res;
     }
 
-    return apiClient.post<{ success: boolean; incidentId: string; acknowledgedAt: string }>(
-      `/api/incident-alerts/${incidentId}/acknowledge`,
-      {}
-    );
+    return {
+      success: true,
+      data: {
+        success: true,
+        incidentId,
+        acknowledgedAt: new Date().toISOString(),
+      },
+    };
   },
 };

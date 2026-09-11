@@ -1,6 +1,7 @@
-import { riskApiClient, apiClient } from '../client';
+import { riskApiClient } from '../client';
 import type { RiskScoreResponse, RiskSegment, ApiResult } from '../../types/domain';
 import { type RiskScoreParams } from '../contracts';
+import { getRiskOverride } from '../../demo/demoDataBridge';
 
 export interface P2RiskScoreResponse {
   segment_id: string;
@@ -13,7 +14,7 @@ export const riskService = {
   getRiskScore: async (params: RiskScoreParams = { routeId: 'hwh-kgp' }): Promise<ApiResult<RiskScoreResponse>> => {
     const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
     if (!isDemoMode) {
-      const segmentId = String(params.routeId || 'hwh-kgp');
+      const segmentId = String(params.routeId || 'SEG_01');
       const res = await riskApiClient.get<P2RiskScoreResponse>('/api/v1/risk-score', { segment_id: segmentId });
       if (res.success) {
         const p2Level = res.data.risk_level;
@@ -44,6 +45,23 @@ export const riskService = {
       return res;
     }
 
-    return apiClient.get<RiskScoreResponse>('/api/risk-score', params);
+    const demoRisk = getRiskOverride() || { level: 'LOW', segments: [] };
+    const levelMap: Record<string, 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'> = {
+      LOW: 'LOW',
+      MEDIUM: 'MEDIUM',
+      HIGH: 'HIGH',
+      CRITICAL: 'CRITICAL',
+    };
+    const overallLevel = levelMap[demoRisk.level] || 'LOW';
+
+    return {
+      success: true,
+      data: {
+        routeId: String(params.routeId || 'hwh-kgp'),
+        overallRiskLevel: overallLevel,
+        segments: demoRisk.segments || [],
+        timestamp: new Date().toISOString(),
+      },
+    };
   },
 };

@@ -1,6 +1,7 @@
-import { positionApiClient, apiClient } from '../client';
+import { positionApiClient } from '../client';
 import type { LivePositionsResponse, CoachPosition, ApiResult } from '../../types/domain';
 import { type LivePositionsParams } from '../contracts';
+import { getLivePositionsOverride } from '../../demo/demoDataBridge';
 
 export interface P2PositionResponse {
   coach_id: string;
@@ -46,6 +47,25 @@ export const positionsService = {
       return res;
     }
 
-    return apiClient.get<LivePositionsResponse>('/api/live-positions', params);
+    const demoPos = getLivePositionsOverride() || { progress: 0.15, speed: 85 };
+    const coaches: CoachPosition[] = [
+      {
+        coachId: 'B1',
+        coordinates: { latitude: 20.2961 + demoPos.progress * 0.1, longitude: 85.8245 + demoPos.progress * 0.1 },
+        speedKmh: demoPos.speed,
+        headingDegrees: 90,
+        timestamp: new Date().toISOString(),
+        status: demoPos.speed > 0 ? 'MOVING' : 'STOPPED',
+      },
+    ];
+
+    return {
+      success: true,
+      data: {
+        trainId: String(params.trainId || '12841'),
+        coaches,
+        timestamp: new Date().toISOString(),
+      },
+    };
   },
 };
