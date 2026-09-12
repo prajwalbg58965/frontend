@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { DemoControls, DemoTimelineIndicator } from '../../demo/DemoControls';
 import { useIncidentAlertsStatus } from '../../hooks/useIncident';
+import { useETAPredictionStatus } from '../../hooks/useEta';
+import { useLivePositions } from '../../hooks/useLivePositions';
+import { useRiskScore } from '../../hooks/useRisk';
 import { useDemo } from '../../demo/DemoContext';
 import { TrainSearchBar } from '../search/TrainSearchBar';
 
@@ -10,7 +13,10 @@ interface HeaderProps {
 
 export function Header({ onOpenPitchModal }: HeaderProps) {
   const [time, setTime] = useState(new Date());
-  const { incidents } = useIncidentAlertsStatus();
+  const { incidents, isError: isErrorIncident } = useIncidentAlertsStatus();
+  const { isError: isErrorEta } = useETAPredictionStatus('12841');
+  const { isError: isErrorPositions } = useLivePositions('12841');
+  const { isError: isErrorRisk } = useRiskScore('hwh-kgp');
   const { state } = useDemo();
 
   const isDemoIncident = ['INCIDENT_TRIGGERED', 'INCIDENT_RESPONSE', 'REUNIFICATION'].includes(state.currentPhase);
@@ -67,10 +73,12 @@ export function Header({ onOpenPitchModal }: HeaderProps) {
           <div className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono font-medium ${
             hasActiveIncident 
               ? 'bg-red-500/20 text-red-400 border-red-500/40'
+              : (isErrorEta || isErrorPositions || isErrorRisk || isErrorIncident)
+              ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40'
               : 'bg-green-500/10 text-green-400 border-green-500/30'
           }`}>
-            <span className={`w-2 h-2 rounded-full ${hasActiveIncident ? 'bg-red-500 animate-ping' : 'bg-green-500'}`} />
-            <span>{hasActiveIncident ? 'INCIDENT MODE' : 'SYSTEM OPERATIONAL'}</span>
+            <span className={`w-2 h-2 rounded-full ${hasActiveIncident ? 'bg-red-500 animate-ping' : (isErrorEta || isErrorPositions || isErrorRisk || isErrorIncident) ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
+            <span>{hasActiveIncident ? 'INCIDENT MODE' : (isErrorEta || isErrorPositions || isErrorRisk || isErrorIncident) ? 'SERVICE DEGRADED' : 'SYSTEM OPERATIONAL'}</span>
           </div>
 
           {/* Clock */}
