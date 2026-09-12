@@ -97,10 +97,10 @@ export function IncidentPanel() {
   if (!activeIncident) {
     return (
       <section className="panel panel-hover p-4" data-panel-id="incident">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-medium text-rail-text flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500" />
-            Incident Mode
+        <div className="flex items-center justify-between mb-3 border-b border-rail-border pb-2">
+          <h3 className="font-bold text-rail-text flex items-center gap-2 uppercase tracking-wider text-sm">
+            <span className="bg-rail-danger text-rail-bg px-1.5 py-0.5 rounded-sm text-[11px] font-black leading-none">3</span>
+            Active Incidents
           </h3>
           <span className="badge badge-green">Person 3</span>
         </div>

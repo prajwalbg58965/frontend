@@ -41,10 +41,10 @@ export function ResponderPanel() {
 
   return (
     <section className="panel panel-hover p-4" data-panel-id="responder">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-medium text-rail-text flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-blue-500" />
-          Nearest Responder
+      <div className="flex items-center justify-between mb-2 border-b border-rail-border pb-2">
+        <h3 className="font-bold text-rail-text flex items-center gap-2 uppercase tracking-wider text-sm">
+          <span className="bg-rail-info text-rail-bg px-1.5 py-0.5 rounded-sm text-[11px] font-black leading-none">2</span>
+          Responders
         </h3>
         <span className="badge badge-blue text-[10px]">Person 4</span>
       </div>

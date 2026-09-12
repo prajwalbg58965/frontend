@@ -130,10 +130,10 @@ export function RiskPanel() {
 
   return (
     <section className="panel panel-hover p-4" data-panel-id="risk">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-medium text-rail-text flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-yellow-500" />
-          Route Risk
+      <div className="flex items-center justify-between mb-3 border-b border-rail-border pb-2">
+        <h3 className="font-bold text-rail-text flex items-center gap-2 uppercase tracking-wider text-sm">
+          <span className="bg-yellow-500 text-rail-bg px-1.5 py-0.5 rounded-sm text-[11px] font-black leading-none">2</span>
+          Track Risk Assessment
         </h3>
         <span className="badge badge-yellow">Person 2</span>
       </div>

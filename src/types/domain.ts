@@ -30,6 +30,7 @@ export interface ETAPrediction {
   readonly trainId: string;
   readonly predictedArrival: string;
   readonly delayMinutes: number;
+  readonly liveDelayMinutes?: number;
   readonly confidenceRange: {
     readonly earliest: string;
     readonly latest: string;

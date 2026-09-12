@@ -31,19 +31,10 @@ export function PassengerSafetyPanel() {
     <section className="panel p-4 transition-all duration-200" data-panel-id="passenger-safety font-sans">
       {/* Panel Header */}
       <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-rail-border">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-md bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-semibold text-rail-text text-sm flex items-center gap-2">
-              "I'm Safe" Reunification
-            </h3>
-            <p className="text-[11px] text-rail-textMuted font-mono">Person 4 • Passenger Check-in Mockup</p>
-          </div>
-        </div>
+        <h3 className="font-bold text-rail-text flex items-center gap-2 uppercase tracking-wider text-sm">
+          <span className="bg-rail-info text-rail-bg px-1.5 py-0.5 rounded-sm text-[11px] font-black leading-none">3</span>
+          Passenger Safety
+        </h3>
 
         <span className="badge badge-blue text-[10px] uppercase font-mono">UI Mockup</span>
       </div>

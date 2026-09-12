@@ -95,7 +95,25 @@
     background: #1e293b;
     border-radius: 3px;
   }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .incident-mode {
+    @apply border-rail-danger bg-rail-danger/10 shadow-[0_0_40px_rgba(255,77,79,0.15)] transition-all duration-300 relative;
+  }
+  
+  .incident-mode::before {
+    content: '';
+    @apply absolute inset-0 border border-rail-danger/50 rounded-lg pointer-events-none animate-pulse-slow;
+  }
 }
+
 
 @layer utilities {
   .text-balance {

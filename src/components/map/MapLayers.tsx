@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
+import bbox from '@turf/bbox';
 import { useMap } from './MapView';
 import { useRoute } from '../../hooks/useRoute';
 import { useLivePositionsStatus } from '../../hooks/useLivePositions';
 import { useRiskScoreStatus } from '../../hooks/useRisk';
 import { useIncidentAlertsStatus } from '../../hooks/useIncident';
 import { useResponderStatus } from '../../hooks/useResponder';
+import { useTrain } from '../../context/TrainContext';
+import { useSimulation } from '../../context/SimulationContext';
 import type { CoachPosition, RiskSegment, IncidentAlert } from '../../types/domain';
 
 const COACH_COLORS = {
@@ -145,8 +148,9 @@ function SeverityBadge({ severity }: { severity: IncidentAlert['severity'] }) {
 
 export function MapLayers() {
   const map = useMap();
-  const { data: routeData, isLoading: routeLoading, isError: routeError } = useRoute();
-  const { positions, isLoading: positionsLoading, isError: positionsError, secondsSinceUpdate } = useLivePositionsStatus();
+  const { selectedTrainId } = useTrain();
+  const { data: routeData, isLoading: routeLoading, isError: routeError } = useRoute(selectedTrainId);
+  const { positions, isLoading: positionsLoading, isError: positionsError, secondsSinceUpdate } = useLivePositionsStatus(selectedTrainId);
   const { risk, isLoading: riskLoading, isError: riskError } = useRiskScoreStatus();
   const { activeIncident, isLoading: incidentLoading, isError: incidentError } = useIncidentAlertsStatus();
   const { nearestResponder } = useResponderStatus();
@@ -159,7 +163,17 @@ export function MapLayers() {
   const riskLayerAddedRef = useRef(false);
   const incidentHandledRef = useRef<string | null>(null);
   const mapFocusedRef = useRef(false);
+  const stationsAddedRef = useRef(false);
+  const currentTrainIdRef = useRef<string | null>(null);
   const [feedStatus, setFeedStatus] = useState<'connecting' | 'live' | 'error'>('connecting');
+  const { mode, simulatedPosition, followTrain, progress } = useSimulation();
+
+  useEffect(() => {
+    if (currentTrainIdRef.current !== selectedTrainId) {
+      currentTrainIdRef.current = selectedTrainId;
+      boundsFittedRef.current = false; // allow refit bounds on new train
+    }
+  }, [selectedTrainId]);
 
   useEffect(() => {
     if (positionsLoading) setFeedStatus('connecting');
@@ -172,12 +186,11 @@ export function MapLayers() {
 
     if (!routeAddedRef.current) {
       try {
-        const feature = routeData.features[0];
-        if (!feature) return;
+        if (!routeData.geojson.features || routeData.geojson.features.length === 0) return;
 
         map.addSource('railway-route', {
           type: 'geojson',
-          data: feature,
+          data: routeData.geojson as any,
         });
 
         map.addLayer({
@@ -189,10 +202,36 @@ export function MapLayers() {
             'line-join': 'round',
           },
           paint: {
-            'line-color': '#00d4aa',
-            'line-width': 3,
-            'line-opacity': 0.8,
-            'line-dasharray': [8, 4],
+            'line-color': [
+              'case',
+              ['has', 'segment_id'], [
+                'case',
+                ['==', ['get', 'segment_id'], 'REAL_RAIL_SEG_01'], '#00f2fe',
+                ['==', ['get', 'segment_id'], 'REAL_RAIL_SEG_02'], '#4facfe',
+                '#1e293b'
+              ],
+              '#00f2fe'
+            ],
+            'line-width': [
+              'case',
+              ['has', 'segment_id'], [
+                'case',
+                ['==', ['get', 'segment_id'], 'REAL_RAIL_SEG_01'], 4,
+                ['==', ['get', 'segment_id'], 'REAL_RAIL_SEG_02'], 4,
+                2
+              ],
+              4
+            ],
+            'line-opacity': [
+              'case',
+              ['has', 'segment_id'], [
+                'case',
+                ['==', ['get', 'segment_id'], 'REAL_RAIL_SEG_01'], 0.9,
+                ['==', ['get', 'segment_id'], 'REAL_RAIL_SEG_02'], 0.9,
+                0.4
+              ],
+              0.9
+            ]
           },
         });
 
@@ -205,24 +244,48 @@ export function MapLayers() {
             'line-join': 'round',
           },
           paint: {
-            'line-color': '#00d4aa',
-            'line-width': 8,
-            'line-opacity': 0.15,
-            'line-blur': 4,
+            'line-color': [
+              'case',
+              ['has', 'segment_id'], [
+                'case',
+                ['==', ['get', 'segment_id'], 'REAL_RAIL_SEG_01'], '#00f2fe',
+                ['==', ['get', 'segment_id'], 'REAL_RAIL_SEG_02'], '#4facfe',
+                '#1e293b'
+              ],
+              '#00f2fe'
+            ],
+            'line-width': 12,
+            'line-opacity': 0.3,
+            'line-blur': 8,
           },
+          filter: [
+            'any',
+            ['!', ['has', 'segment_id']],
+            ['in', ['get', 'segment_id'], ['literal', ['REAL_RAIL_SEG_01', 'REAL_RAIL_SEG_02']]]
+          ],
         });
 
         routeAddedRef.current = true;
       } catch (err) {
         console.error('Failed to add route layer:', err);
       }
+    } else {
+      const source = map.getSource('railway-route') as maplibregl.GeoJSONSource;
+      if (source && routeData.geojson.features && routeData.geojson.features.length > 0) {
+        source.setData(routeData.geojson as any);
+      }
     }
 
-    if (!boundsFittedRef.current && routeData.features[0]) {
+    if (!boundsFittedRef.current && routeData.geojson.features.length > 0) {
       try {
-        const coords = routeData.features[0].geometry.coordinates as [number, number][];
+        const bounds = new maplibregl.LngLatBounds();
+        
+        // Find the primary route
+        const primaryFeature = routeData.geojson.features.find(f => f.properties?.segment_id === 'REAL_RAIL_SEG_01') || routeData.geojson.features[0];
+        
+        const coords = primaryFeature.geometry.coordinates as [number, number][];
         if (coords.length >= 2) {
-          const bounds = new maplibregl.LngLatBounds(coords[0], coords[0]);
+          bounds.extend(coords[0]);
           for (const coord of coords) {
             bounds.extend(coord);
           }
@@ -232,6 +295,82 @@ export function MapLayers() {
       } catch (err) {
         console.error('Failed to fit bounds:', err);
       }
+    }
+
+    if (!stationsAddedRef.current && routeData.stops.length > 0) {
+      try {
+        const stationGeoJSON = {
+          type: 'FeatureCollection' as const,
+          features: routeData.stops.map(stop => ({
+            type: 'Feature' as const,
+            properties: {
+              name: stop.name,
+              sequence: stop.sequence
+            },
+            geometry: {
+              type: 'Point' as const,
+              coordinates: [stop.lng, stop.lat]
+            }
+          }))
+        };
+
+        map.addSource('railway-stations', {
+          type: 'geojson',
+          data: stationGeoJSON
+        });
+
+        map.addLayer({
+          id: 'railway-station-points',
+          type: 'circle',
+          source: 'railway-stations',
+          paint: {
+            'circle-radius': [
+              'interpolate', ['linear'], ['zoom'],
+              5, 2,
+              10, 4,
+              15, 6
+            ],
+            'circle-color': '#040b14',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#00f2fe'
+          }
+        });
+
+        map.addLayer({
+          id: 'railway-station-labels',
+          type: 'symbol',
+          source: 'railway-stations',
+          minzoom: 8,
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+            'text-size': 10,
+            'text-offset': [0, 1.2],
+            'text-anchor': 'top',
+            'symbol-sort-key': ['get', 'sequence'],
+          },
+          paint: {
+            'text-color': '#e8edf2',
+            'text-halo-color': '#06111f',
+            'text-halo-width': 2
+          }
+        });
+
+        stationsAddedRef.current = true;
+      } catch (e) {
+        console.error('Failed to add stations', e);
+      }
+    } else if (routeData.stops.length > 0) {
+      const stationGeoJSON = {
+        type: 'FeatureCollection' as const,
+        features: routeData.stops.map(stop => ({
+          type: 'Feature' as const,
+          properties: { name: stop.name, sequence: stop.sequence },
+          geometry: { type: 'Point' as const, coordinates: [stop.lng, stop.lat] }
+        }))
+      };
+      const source = map.getSource('railway-stations') as maplibregl.GeoJSONSource;
+      if (source) source.setData(stationGeoJSON);
     }
   }, [map, routeData, routeLoading, routeError]);
 
@@ -492,13 +631,33 @@ export function MapLayers() {
           closeOnClick: true,
           offset: 16,
           className: 'coach-popup'
-        }).setHTML(createPopupContent(coach, isAffected));
+        }).setHTML(createPopupContent(coach, isAffected, mode));
 
         marker.setPopup(popup);
         markersRef.current.set(coach.coachId, marker);
       }
     }
   }, [map, positions, positionsLoading, activeIncident]);
+
+  // Handle follow train
+  useEffect(() => {
+    if (!map || !followTrain) return;
+    let targetLng = 20.296;
+    let targetLat = 85.824;
+
+    if (mode === 'SIMULATION' && simulatedPosition) {
+      targetLng = simulatedPosition.longitude;
+      targetLat = simulatedPosition.latitude;
+    } else {
+      const eng = positions.find(c => c.coachId === 'ENGINE');
+      if (eng) {
+        targetLng = eng.coordinates.longitude;
+        targetLat = eng.coordinates.latitude;
+      }
+    }
+
+    map.panTo([targetLng, targetLat], { duration: 1000, easing: t => t * (2 - t) });
+  }, [map, followTrain, simulatedPosition, positions, mode]);
 
   useEffect(() => {
     return () => {
@@ -515,6 +674,7 @@ export function MapLayers() {
       routeAddedRef.current = false;
       boundsFittedRef.current = false;
       riskLayerAddedRef.current = false;
+      stationsAddedRef.current = false;
       incidentHandledRef.current = null;
       mapFocusedRef.current = false;
     };
@@ -531,7 +691,7 @@ export function MapLayers() {
             feedStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
             'bg-red-500'
           }`} aria-hidden="true" />
-          <span className="font-mono text-xs text-rail-text">DEMO POSITION FEED</span>
+          <span className="font-mono text-xs text-rail-text">LIVE FEED: TRAIN {selectedTrainId}</span>
           {secondsSinceUpdate !== null && (
             <span className="font-mono text-xs text-rail-textMuted">
               Updated: {secondsSinceUpdate}s ago
@@ -559,9 +719,12 @@ export function MapLayers() {
   );
 }
 
-function createPopupContent(coach: CoachPosition, isAffected = false): string {
+function createPopupContent(coach: CoachPosition, isAffected = false, mode = 'LIVE'): string {
   const updateTime = coach.timestamp ? new Date(coach.timestamp).toLocaleTimeString('en-GB', { hour12: false, timeZone: 'Asia/Kolkata' }) : 'Unknown';
   const coords = `${coach.coordinates.latitude.toFixed(4)}° N, ${coach.coordinates.longitude.toFixed(4)}° E`;
+  const isSim = mode === 'SIMULATION';
+  const sourceText = isSim ? 'Source: RailSentinel Demo' : 'Source: RailRadar';
+  const modeColor = isSim ? '#ffb800' : '#22c55e';
   
   return `
     <div class="coach-popup-content" style="padding: 8px 10px; min-width: 160px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">
@@ -578,8 +741,9 @@ function createPopupContent(coach: CoachPosition, isAffected = false): string {
       <div style="color: #7a8d9c; font-size: 11px; border-top: 1px solid #1e2a38; padding-top: 4px;">
         <span style="color: #e8edf2;">Coords:</span> ${coords}
       </div>
-      <div style="color: #ff4d4f; font-size: 10px; margin-top: 6px; text-align: center;">
-        Demo data — not live GPS
+      <div style="color: ${modeColor}; font-size: 10px; margin-top: 6px; text-align: center; font-weight: bold; padding: 2px; border: 1px solid ${modeColor}40; border-radius: 4px; background: ${modeColor}10;">
+        ● ${isSim ? 'SIMULATED' : 'LIVE GPS'}<br>
+        <span style="font-size: 9px; opacity: 0.8;">${sourceText}</span>
       </div>
     </div>
   `;

@@ -96,22 +96,22 @@ export function EtaPanel({ trainId }: EtaPanelProps) {
           {/* Main Primary ETA Banner */}
           <div className="bg-rail-bg/80 border border-rail-border p-3 rounded-lg flex items-center justify-between">
             <div>
-              <span className="text-[11px] text-rail-textMuted uppercase font-mono tracking-wider block">Predicted Arrival</span>
+              <span className="text-[11px] text-rail-textMuted uppercase font-mono tracking-wider block">RAILSENTINEL ML ETA</span>
               <div className="text-2xl font-bold font-mono text-rail-accent tracking-tight">
                 {formatTimeString(eta.predictedArrival)}
               </div>
             </div>
 
             <div className="text-right">
-              <span className="text-[11px] text-rail-textMuted uppercase font-mono tracking-wider block">Status / Delay</span>
+              <span className="text-[11px] text-rail-textMuted uppercase font-mono tracking-wider block">LIVE RAIL STATUS</span>
               <div className="mt-0.5">
-                {eta.delayMinutes > 0 ? (
+                {eta.liveDelayMinutes !== undefined && eta.liveDelayMinutes > 0 ? (
                   <span className="badge badge-yellow text-xs font-mono font-semibold">
-                    +{eta.delayMinutes} min delay
+                    +{eta.liveDelayMinutes} min delay
                   </span>
-                ) : eta.delayMinutes < 0 ? (
+                ) : eta.liveDelayMinutes !== undefined && eta.liveDelayMinutes < 0 ? (
                   <span className="badge badge-green text-xs font-mono font-semibold">
-                    {Math.abs(eta.delayMinutes)} min early
+                    {Math.abs(eta.liveDelayMinutes)} min early
                   </span>
                 ) : (
                   <span className="badge badge-green text-xs font-mono font-semibold">

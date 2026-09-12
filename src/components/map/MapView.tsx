@@ -11,31 +11,62 @@ const DEFAULT_ZOOM = 8.5;
 
 const DARK_STYLE: maplibregl.StyleSpecification = {
   version: 8,
+  glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   sources: {
-    osm: {
+    'esri-dark': {
       type: 'raster',
-      tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+      ],
       tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
-      maxzoom: 19,
+      attribution: '&copy; Esri, HERE, Garmin, FAO, NOAA, USGS, EPA'
     },
+    'esri-dark-reference': {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+      ],
+      tileSize: 256,
+      attribution: ''
+    },
+    'openrailway': {
+      type: 'raster',
+      tiles: [
+        'https://a.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
+        'https://b.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
+        'https://c.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png'
+      ],
+      tileSize: 256,
+      attribution: '&copy; OpenRailwayMap'
+    }
   },
   layers: [
     {
       id: 'background',
       type: 'background',
-      paint: { 'background-color': '#0a0f14' },
+      paint: { 'background-color': '#06111f' },
     },
     {
-      id: 'osm',
+      id: 'esri-dark-layer',
       type: 'raster',
-      source: 'osm',
-      paint: {
-        'raster-opacity': 0.15,
-        'raster-saturation': 0,
-        'raster-contrast': 0.3,
-      },
+      source: 'esri-dark',
+      paint: { 'raster-opacity': 1.0 }
     },
+    {
+      id: 'openrailway-layer',
+      type: 'raster',
+      source: 'openrailway',
+      paint: { 
+        'raster-opacity': 0.35,
+        'raster-contrast': 0.1
+      }
+    },
+    {
+      id: 'esri-dark-reference-layer',
+      type: 'raster',
+      source: 'esri-dark-reference',
+      paint: { 'raster-opacity': 0.8 }
+    }
   ],
 };
 
@@ -53,7 +84,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
   const [mapError, setMapError] = useState<Error | null>(null);
   const { selectedTrainId, getTrainInfo } = useTrain();
 
-  const activeTrain = getTrainInfo(selectedTrainId);
+  const activeTrain = getTrainInfo(selectedTrainId) || { id: selectedTrainId, name: 'Custom Train', route: 'Live Tracking' };
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
